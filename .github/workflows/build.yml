@@ -36,21 +36,25 @@ jobs:
           restore-keys: ${{ runner.os }}-cargo-
 
       - name: Install packaging tools
+        if: startsWith(github.ref, 'refs/tags/v')
         run: cargo install cargo-deb cargo-generate-rpm
 
-      - name: Build Linux binary
+      - name: Build Linux
         run: cargo build --release
 
       - name: Package .deb
+        if: startsWith(github.ref, 'refs/tags/v')
         run: cargo deb --no-build
 
       - name: Package .rpm
+        if: startsWith(github.ref, 'refs/tags/v')
         run: cargo generate-rpm
 
-      - name: Cross-compile Windows
+      - name: Build Windows
         run: cargo build --release --target x86_64-pc-windows-gnu
 
       - name: Collect artifacts
+        if: startsWith(github.ref, 'refs/tags/v')
         run: |
           mkdir -p dist
           VERSION=$(grep '^version' Cargo.toml | head -1 | sed 's/.*"\(.*\)"/\1/')
@@ -60,6 +64,7 @@ jobs:
           cp target/x86_64-pc-windows-gnu/release/$GAME_NAME.exe dist/$GAME_NAME-$VERSION-windows-x86_64.exe
 
       - uses: actions/upload-artifact@v4
+        if: startsWith(github.ref, 'refs/tags/v')
         with:
           name: fifteen-linux-windows
           path: dist/*
@@ -93,12 +98,14 @@ jobs:
         run: cargo build --release
 
       - name: Collect artifacts
+        if: startsWith(github.ref, 'refs/tags/v')
         run: |
           mkdir -p dist
           VERSION=$(grep '^version' Cargo.toml | head -1 | sed 's/.*"\(.*\)"/\1/')
           cp target/release/$GAME_NAME dist/$GAME_NAME-$VERSION-${{ matrix.suffix }}
 
       - uses: actions/upload-artifact@v4
+        if: startsWith(github.ref, 'refs/tags/v')
         with:
           name: fifteen-${{ matrix.suffix }}
           path: dist/*
